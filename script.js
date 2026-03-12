@@ -1,29 +1,26 @@
-// ─────────────────────────────────────────────
-//  SPOTIFY OBS OVERLAY — script.js
-//  Features: PKCE auth, color extraction,
-//  smooth progress, marquee, song transitions
-// ─────────────────────────────────────────────
+// SPOTIFY OBS OVERLAY — script.js
 
-// ── CONFIGURATION ──────────────────────────────
-// Replace with your Spotify App Client ID
-// Or set it via the config panel
+// CONFIGURATION
 let CLIENT_ID = localStorage.getItem('spotify_client_id') || '';
 const REDIRECT_URI = 'https://glacioboreale.github.io/SpotifyObsWidget/callback.html';
 const SCOPES = 'user-read-currently-playing user-read-playback-state';
-const API_POLL_INTERVAL = 5000;   // ms — fetch from Spotify
-const PROGRESS_TICK = 1000;       // ms — local progress increment
+const API_POLL_INTERVAL = 5000;
+const PROGRESS_TICK = 1000;
+const HIDE_AFTER_MS = 60000; // 1 minuto senza riproduzione
 
-// ── STATE ──────────────────────────────────────
+// STATE
 let currentTrackId = null;
 let progressMs = 0;
 let durationMs = 0;
 let isPlaying = false;
 let progressInterval = null;
 let pollInterval = null;
+let hideTimeout = null;
+let isWidgetVisible = true;
 
-// ── PKCE HELPERS ───────────────────────────────
+// PKCE HELPERS
 function generateRandom(length) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwpqrstuvwxyz0123456789-._~';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
   const arr = new Uint8Array(length);
   crypto.getRandomValues(arr);
   return Array.from(arr, b => chars[b % chars.length]).join('');
@@ -36,19 +33,15 @@ async function generateCodeChallenge(verifier) {
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-// ── LOGIN ───────────────────────────────────────
+// LOGIN
 async function startLogin() {
   const id = document.getElementById('client-id-input')?.value?.trim() || CLIENT_ID;
-  if (!id) {
-    alert('Please enter your Spotify Client ID first.');
-    return;
-  }
+  if (!id) { alert('Please enter your Spotify Client ID first.'); return; }
   CLIENT_ID = id;
   localStorage.setItem('spotify_client_id', id);
 
   const verifier = generateRandom(64);
   const challenge = await generateCodeChallenge(verifier);
-
   localStorage.setItem('spotify_code_verifier', verifier);
   localStorage.setItem('spotify_redirect_uri', REDIRECT_URI);
 
@@ -60,13 +53,10 @@ async function startLogin() {
     code_challenge: challenge,
     scope: SCOPES,
   });
-
   window.location.href = `https://accounts.spotify.com/authorize?${params}`;
 }
 
-function saveClientId() {
-  startLogin();
-}
+function saveClientId() { startLogin(); }
 
 function logout() {
   localStorage.removeItem('spotify_access_token');
@@ -76,7 +66,7 @@ function logout() {
   window.location.reload();
 }
 
-// ── TOKEN REFRESH ───────────────────────────────
+// TOKEN REFRESH
 async function refreshToken() {
   const refresh = localStorage.getItem('spotify_refresh_token');
   if (!refresh) return false;
@@ -95,9 +85,7 @@ async function refreshToken() {
   if (data.access_token) {
     localStorage.setItem('spotify_access_token', data.access_token);
     localStorage.setItem('spotify_token_expires', Date.now() + data.expires_in * 1000);
-    if (data.refresh_token) {
-      localStorage.setItem('spotify_refresh_token', data.refresh_token);
-    }
+    if (data.refresh_token) localStorage.setItem('spotify_refresh_token', data.refresh_token);
     return true;
   }
   return false;
@@ -112,13 +100,10 @@ async function getValidToken() {
   return localStorage.getItem('spotify_access_token');
 }
 
-// ── FETCH CURRENT TRACK ─────────────────────────
+// FETCH CURRENT TRACK
 async function fetchCurrentTrack() {
   const token = await getValidToken();
-  if (!token) {
-    showLogin();
-    return;
-  }
+  if (!token) { showLogin(); return; }
 
   try {
     const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
@@ -126,20 +111,18 @@ async function fetchCurrentTrack() {
     });
 
     if (res.status === 204 || res.status === 404) {
-      // Nothing playing
-      showPaused(true);
+      setStatus(true);
+      scheduleHide();
       return;
     }
 
-    if (res.status === 401) {
-      showLogin();
-      return;
-    }
+    if (res.status === 401) { showLogin(); return; }
 
     const data = await res.json();
 
     if (!data || !data.item) {
-      showPaused(true);
+      setStatus(true);
+      scheduleHide();
       return;
     }
 
@@ -147,17 +130,23 @@ async function fetchCurrentTrack() {
     const track = data.item;
     const newTrackId = track.id;
 
-    // Sync progress from API
     progressMs = data.progress_ms || 0;
     durationMs = track.duration_ms || 1;
 
     if (newTrackId !== currentTrackId) {
-      // Song changed — animate transition
       currentTrackId = newTrackId;
       await transitionToNewSong(track);
     }
 
-    showPaused(!isPlaying);
+    if (!isPlaying) {
+      setStatus(true);
+      scheduleHide();
+    } else {
+      setStatus(false);
+      cancelHide();
+      showWidget();
+    }
+
     updateProgressUI();
 
   } catch (e) {
@@ -165,44 +154,36 @@ async function fetchCurrentTrack() {
   }
 }
 
-// ── SONG TRANSITION ─────────────────────────────
+// SONG TRANSITION
 async function transitionToNewSong(track) {
   const widget = document.getElementById('widget');
   const albumArt = document.getElementById('album-art');
   const titleEl = document.getElementById('track-title');
   const artistEl = document.getElementById('track-artist');
 
-  // Fade out
   widget.style.opacity = '0';
   widget.style.transform = 'translateY(6px)';
-
   await sleep(350);
 
-  // Update data
   const imageUrl = track.album?.images?.[0]?.url || '';
   albumArt.src = imageUrl;
   titleEl.textContent = track.name || '—';
   artistEl.textContent = track.artists?.map(a => a.name).join(', ') || '—';
 
-  // Extract & apply dominant color
   if (imageUrl) {
     extractColorAndApply(imageUrl);
     updateBgBlur(imageUrl);
   }
 
-  // Check if title needs marquee
   requestAnimationFrame(() => checkMarquee());
 
-  // Fade in
   widget.style.opacity = '1';
   widget.style.transform = 'translateY(0)';
 }
 
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// ── PROGRESS BAR ────────────────────────────────
+// PROGRESS BAR
 function startProgressTick() {
   clearInterval(progressInterval);
   progressInterval = setInterval(() => {
@@ -228,65 +209,42 @@ function formatTime(ms) {
   return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
-// ── MARQUEE ─────────────────────────────────────
+// MARQUEE
 function checkMarquee() {
   const wrap = document.getElementById('title-wrap');
   const inner = document.getElementById('track-title-inner');
   const span = document.getElementById('track-title');
-
-  // Reset
   inner.classList.remove('marquee-active');
-
-  const wrapWidth = wrap.offsetWidth;
-  const textWidth = span.scrollWidth;
-
-  if (textWidth > wrapWidth) {
-    // Set CSS var for animation distance
-    inner.style.setProperty('--marquee-distance', `${textWidth + 40}px`);
+  if (span.scrollWidth > wrap.offsetWidth) {
+    inner.style.setProperty('--marquee-distance', `${span.scrollWidth + 40}px`);
     inner.classList.add('marquee-active');
   }
 }
 
-// ── COLOR EXTRACTION ────────────────────────────
+// COLOR EXTRACTION
 function extractColorAndApply(imageUrl) {
   const img = new Image();
   img.crossOrigin = 'anonymous';
   img.src = imageUrl;
   img.onload = () => {
     const canvas = document.createElement('canvas');
-    canvas.width = 50;
-    canvas.height = 50;
+    canvas.width = 50; canvas.height = 50;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0, 50, 50);
-
     const data = ctx.getImageData(0, 0, 50, 50).data;
     let r = 0, g = 0, b = 0, count = 0;
-
     for (let i = 0; i < data.length; i += 16) {
-      // Skip near-black and near-white pixels
       const pr = data[i], pg = data[i+1], pb = data[i+2];
       const brightness = (pr + pg + pb) / 3;
-      if (brightness > 30 && brightness < 225) {
-        r += pr; g += pg; b += pb;
-        count++;
-      }
+      if (brightness > 30 && brightness < 225) { r += pr; g += pg; b += pb; count++; }
     }
-
-    if (count === 0) { r = 29; g = 185; b = 84; count = 1; } // fallback green
-
-    r = Math.round(r / count);
-    g = Math.round(g / count);
-    b = Math.round(b / count);
-
-    // Boost saturation
-    const boosted = boostColor(r, g, b);
-
+    if (count === 0) { r = 29; g = 185; b = 84; count = 1; }
+    const boosted = boostColor(Math.round(r/count), Math.round(g/count), Math.round(b/count));
     applyAccentColor(boosted.r, boosted.g, boosted.b);
   };
 }
 
 function boostColor(r, g, b) {
-  // Convert to HSL, boost saturation
   let [h, s, l] = rgbToHsl(r, g, b);
   s = Math.min(1, s * 1.6 + 0.2);
   l = Math.min(0.65, Math.max(0.35, l));
@@ -296,19 +254,15 @@ function boostColor(r, g, b) {
 function applyAccentColor(r, g, b) {
   const root = document.documentElement;
   root.style.setProperty('--accent', `rgb(${r},${g},${b})`);
-  root.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.35)`);
+  root.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.3)`);
   root.style.setProperty('--accent-dim', `rgba(${r},${g},${b},0.15)`);
-
-  // Update bg color overlay
-  document.getElementById('bg-color').style.background =
-    `radial-gradient(ellipse at center, rgba(${r},${g},${b},0.18) 0%, transparent 70%)`;
 }
 
 function updateBgBlur(imageUrl) {
   document.getElementById('bg-blur').style.backgroundImage = `url(${imageUrl})`;
 }
 
-// ── COLOR MATH ──────────────────────────────────
+// COLOR MATH
 function rgbToHsl(r, g, b) {
   r /= 255; g /= 255; b /= 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -346,9 +300,28 @@ function hslToRgb(h, s, l) {
   return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
 }
 
-// ── UI HELPERS ──────────────────────────────────
-function showPaused(paused) {
-  document.getElementById('paused-badge').classList.toggle('hidden', !paused);
+// HIDE / SHOW WIDGET
+function scheduleHide() {
+  if (hideTimeout) return;
+  hideTimeout = setTimeout(() => {
+    document.getElementById('overlay').classList.add('hidden-widget');
+    isWidgetVisible = false;
+  }, HIDE_AFTER_MS);
+}
+
+function cancelHide() {
+  if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
+}
+
+function showWidget() {
+  if (!isWidgetVisible) {
+    document.getElementById('overlay').classList.remove('hidden-widget');
+    isWidgetVisible = true;
+  }
+}
+
+// UI HELPERS
+function setStatus(paused) {
   const badge = document.getElementById('status-badge');
   const icon = document.getElementById('status-icon');
   const text = document.getElementById('status-text');
@@ -373,9 +346,8 @@ function showOverlay() {
   document.getElementById('overlay').classList.remove('hidden');
 }
 
-// ── INIT ────────────────────────────────────────
+// INIT
 async function init() {
-  // Read tokens from URL hash (injected by auth.html for OBS)
   if (window.location.hash) {
     const params = new URLSearchParams(window.location.hash.slice(1));
     if (params.get('access_token')) {
@@ -383,37 +355,23 @@ async function init() {
       localStorage.setItem('spotify_refresh_token', params.get('refresh_token'));
       localStorage.setItem('spotify_client_id', params.get('client_id'));
       localStorage.setItem('spotify_token_expires', params.get('expires'));
-      // Clean URL without reloading
       history.replaceState(null, '', window.location.pathname);
     }
   }
 
   CLIENT_ID = localStorage.getItem('spotify_client_id') || '';
-
-  // Pre-fill config if saved
   const input = document.getElementById('client-id-input');
   if (input && CLIENT_ID) input.value = CLIENT_ID;
 
   const token = localStorage.getItem('spotify_access_token');
-  if (!token) {
-    showLogin();
-    return;
-  }
+  if (!token) { showLogin(); return; }
 
   showOverlay();
-
-  // Apply default accent
   applyAccentColor(29, 185, 84);
-
-  // Start polling
   await fetchCurrentTrack();
   startProgressTick();
   pollInterval = setInterval(fetchCurrentTrack, API_POLL_INTERVAL);
 }
 
-// Re-check marquee on resize
-window.addEventListener('resize', () => {
-  checkMarquee();
-});
-
+window.addEventListener('resize', () => checkMarquee());
 init();
