@@ -17,7 +17,7 @@
   --text-secondary: rgba(255,255,255,0.55);
 
   --radius: 16px;
-  --widget-width: 380px;
+  --widget-width: calc(100vw - 48px);
 }
 
 * {
@@ -205,7 +205,8 @@ html, body {
 }
 
 #album-art {
-  width: 72px; height: 72px;
+  width: clamp(56px, 10vw, 90px);
+  height: clamp(56px, 10vw, 90px);
   border-radius: 10px;
   object-fit: cover;
   display: block;
@@ -337,6 +338,4 @@ html, body {
 }
 
 /* ── RESPONSIVE (OBS usually uses fixed size) ───── */
-@media (max-width: 420px) {
-  :root { --widget-width: calc(100vw - 32px); }
-}
+/* Widget sempre fluido — nessun breakpoint fisso */
