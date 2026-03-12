@@ -139,9 +139,9 @@ html, body {
 /* ── OVERLAY WRAPPER ───────────────────────────── */
 #overlay {
   width: 100vw; height: 100vh;
-  display: flex; align-items: flex-end;
+  display: flex; align-items: stretch;
   justify-content: flex-start;
-  padding: 24px;
+  padding: 16px;
   position: relative;
   overflow: visible;
 }
@@ -193,6 +193,7 @@ html, body {
   border-radius: var(--radius);
   padding: 22px 18px 14px 14px;
   width: var(--widget-width);
+  height: 100%;
   backdrop-filter: blur(24px) saturate(1.8);
   box-shadow:
     0 8px 32px rgba(0,0,0,0.4),
@@ -211,8 +212,8 @@ html, body {
 }
 
 #album-art {
-  width: 72px;
-  height: 72px;
+  width: clamp(56px, 8vh, 100px);
+  height: clamp(56px, 8vh, 100px);
   border-radius: 10px;
   object-fit: cover;
   display: block;
