@@ -18,7 +18,8 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
-  width: 100%; height: 100%;
+  width: 420px;
+  height: 140px;
   overflow: hidden;
   background: transparent;
   font-family: 'Outfit', sans-serif;
@@ -63,15 +64,17 @@ html, body {
 /* ── CONFIG PANEL — nascosto ───────────────────── */
 #config-panel { display: none; }
 
-/* ── OVERLAY: centra il widget nella browser source */
+/* ── OVERLAY: fissato in alto a sinistra, dimensione fissa */
 #overlay {
-  width: 100vw;
-  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 420px;
+  height: 140px;
   display: flex;
-  align-items: center;      /* centrato verticalmente */
-  justify-content: center;  /* centrato orizzontalmente */
-  padding: 16px;
-  position: relative;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 10px;
   overflow: visible;
 }
 
@@ -102,8 +105,7 @@ html, body {
   border: 1px solid var(--surface-border);
   border-radius: var(--radius);
   padding: 28px 18px 16px 16px;
-  /* larghezza = tutta la source meno il padding */
-  width: calc(100vw - 32px);
+  width: 400px;
   /* altezza = si adatta al contenuto */
   backdrop-filter: blur(24px) saturate(1.8);
   box-shadow:
@@ -120,9 +122,8 @@ html, body {
 #album-art-wrap { position: relative; flex-shrink: 0; }
 
 #album-art {
-  /* scala in base all'altezza disponibile, con limiti */
-  width: clamp(52px, calc(100vh - 60px), 90px);
-  height: clamp(52px, calc(100vh - 60px), 90px);
+  width: 80px;
+  height: 80px;
   border-radius: 10px;
   object-fit: cover;
   display: block;
@@ -163,14 +164,14 @@ html, body {
 #title-wrap:hover #track-title-inner { animation-play-state: paused; }
 
 #track-title {
-  font-size: clamp(13px, 2vh, 16px);
+  font-size: 14px;
   font-weight: 600; letter-spacing: -0.2px;
   color: var(--text-primary);
   padding-right: 40px;
 }
 
 #track-artist {
-  font-size: clamp(11px, 1.6vh, 13px);
+  font-size: 12px;
   font-weight: 400; color: var(--text-secondary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -200,7 +201,7 @@ html, body {
 
 #progress-times {
   display: flex; justify-content: space-between;
-  font-size: clamp(9px, 1.4vh, 11px); font-weight: 500;
+  font-size: 10px; font-weight: 500;
   color: var(--text-secondary); letter-spacing: 0.3px;
 }
 
