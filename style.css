@@ -1,6 +1,5 @@
 /* ─────────────────────────────────────────────
    SPOTIFY OBS OVERLAY — style.css
-   Dark glass aesthetic, dynamic accent color
 ───────────────────────────────────────────── */
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
@@ -9,21 +8,14 @@
   --accent: #1DB954;
   --accent-glow: rgba(29,185,84,0.35);
   --accent-dim: rgba(29,185,84,0.15);
-
-  --bg: #0d0d0f;
   --surface: rgba(255,255,255,0.06);
   --surface-border: rgba(255,255,255,0.10);
   --text-primary: #ffffff;
   --text-secondary: rgba(255,255,255,0.55);
-
   --radius: 16px;
-  --widget-width: 420px;
 }
 
-* {
-  margin: 0; padding: 0;
-  box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body {
   width: 100%; height: 100%;
@@ -32,13 +24,7 @@ html, body {
   font-family: 'Outfit', sans-serif;
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
-  -webkit-text-size-adjust: 100%;
 }
-
-/* Scala tutto proporzionalmente alla larghezza della browser source */
-@media (max-width: 600px)  { :root { --widget-width: calc(100vw - 32px); font-size: 13px; } }
-@media (min-width: 601px) and (max-width: 900px) { :root { --widget-width: 420px; } }
-@media (min-width: 901px)  { :root { --widget-width: 480px; } }
 
 .hidden { display: none !important; }
 
@@ -60,128 +46,52 @@ html, body {
   display: flex; flex-direction: column; align-items: center; gap: 16px;
 }
 
-.spotify-logo {
-  width: 48px; height: 48px;
-  color: #1DB954;
-  margin-bottom: 4px;
-}
-
-.login-card h1 {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.3px;
-}
-
-.login-card p {
-  font-size: 13px;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
+.spotify-logo { width: 48px; height: 48px; color: #1DB954; margin-bottom: 4px; }
+.login-card h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+.login-card p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
 
 #login-btn {
   display: flex; align-items: center; gap: 8px;
-  background: #1DB954;
-  color: #000;
-  border: none;
-  border-radius: 50px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  font-family: 'Outfit', sans-serif;
-  cursor: pointer;
-  margin-top: 8px;
+  background: #1DB954; color: #000;
+  border: none; border-radius: 50px;
+  padding: 12px 24px; font-size: 14px; font-weight: 600;
+  font-family: 'Outfit', sans-serif; cursor: pointer; margin-top: 8px;
   transition: transform 0.15s, box-shadow 0.15s;
 }
-#login-btn:hover {
-  transform: scale(1.04);
-  box-shadow: 0 0 20px rgba(29,185,84,0.4);
-}
+#login-btn:hover { transform: scale(1.04); box-shadow: 0 0 20px rgba(29,185,84,0.4); }
 
-/* ── CONFIG PANEL — hidden in OBS ──────────────── */
-#config-panel {
-  display: none;
-}
+/* ── CONFIG PANEL — nascosto ───────────────────── */
+#config-panel { display: none; }
 
-#config-panel label { color: var(--text-secondary); }
-
-#config-panel input {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 6px;
-  padding: 4px 8px;
-  color: #fff;
-  font-size: 11px;
-  width: 200px;
-  font-family: monospace;
-}
-#config-panel input:focus { outline: none; border-color: var(--accent); }
-
-#config-panel button {
-  background: var(--accent);
-  color: #000;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: 'Outfit', sans-serif;
-}
-
-#config-panel a {
-  color: var(--text-secondary);
-  font-size: 11px;
-  text-decoration: none;
-  margin-left: 4px;
-}
-#config-panel a:hover { color: #fff; }
-
-/* ── OVERLAY WRAPPER ───────────────────────────── */
+/* ── OVERLAY: centra il widget nella browser source */
 #overlay {
-  width: 100vw; height: 100vh;
-  display: flex; align-items: stretch;
-  justify-content: flex-start;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;      /* centrato verticalmente */
+  justify-content: center;  /* centrato orizzontalmente */
   padding: 16px;
   position: relative;
   overflow: visible;
 }
 
-/* Blurred background art — disabled */
-#bg-blur {
-  display: none;
-}
+#bg-blur { display: none; }
+#bg-color { display: none; }
 
-/* Color tint overlay — disabled */
-#bg-color {
-  display: none;
-}
-
-/* ── STATUS BADGE ─────────────────────────────── */
+/* ── STATUS BADGE ──────────────────────────────── */
 #status-badge {
   position: absolute;
-  top: 10px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
+  top: 10px; right: 14px;
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.6px; text-transform: uppercase;
   color: var(--accent);
-  opacity: 0.9;
-  transition: color 0.8s ease, opacity 0.3s ease;
+  transition: color 0.8s ease;
 }
+#status-badge i { font-size: 9px; }
+#status-badge.paused { color: rgba(255,255,255,0.35); }
 
-#status-badge i {
-  font-size: 9px;
-}
-
-#status-badge.paused {
-  color: rgba(255,255,255,0.35);
-}
-
-/* ── WIDGET ────────────────────────────────────── */
+/* ── WIDGET: dimensione determinata dal contenuto ─ */
 #widget {
   position: relative;
   z-index: 10;
@@ -191,9 +101,10 @@ html, body {
   background: rgba(0,0,0,0.55);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius);
-  padding: 22px 18px 14px 14px;
-  width: var(--widget-width);
-  height: 100%;
+  padding: 28px 18px 16px 16px;
+  /* larghezza = tutta la source meno il padding */
+  width: calc(100vw - 32px);
+  /* altezza = si adatta al contenuto */
   backdrop-filter: blur(24px) saturate(1.8);
   box-shadow:
     0 8px 32px rgba(0,0,0,0.4),
@@ -206,14 +117,12 @@ html, body {
 }
 
 /* ── ALBUM ART ─────────────────────────────────── */
-#album-art-wrap {
-  position: relative;
-  flex-shrink: 0;
-}
+#album-art-wrap { position: relative; flex-shrink: 0; }
 
 #album-art {
-  width: clamp(56px, 8vh, 100px);
-  height: clamp(56px, 8vh, 100px);
+  /* scala in base all'altezza disponibile, con limiti */
+  width: clamp(52px, calc(100vh - 60px), 90px);
+  height: clamp(52px, calc(100vh - 60px), 90px);
   border-radius: 10px;
   object-fit: cover;
   display: block;
@@ -221,8 +130,7 @@ html, body {
 }
 
 #album-glow {
-  position: absolute;
-  inset: -4px;
+  position: absolute; inset: -4px;
   border-radius: 14px;
   background: var(--accent-glow);
   filter: blur(12px);
@@ -232,18 +140,11 @@ html, body {
 
 /* ── TRACK INFO ────────────────────────────────── */
 #track-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 4px;
 }
 
-/* Marquee container */
-#title-wrap {
-  overflow: hidden;
-  position: relative;
-}
+#title-wrap { overflow: hidden; position: relative; }
 
 #track-title-inner {
   display: flex;
@@ -259,90 +160,54 @@ html, body {
   100% { transform: translateX(calc(-1 * var(--marquee-distance, 200px))); }
 }
 
-/* Pause marquee on hover (for debugging outside OBS) */
-#title-wrap:hover #track-title-inner {
-  animation-play-state: paused;
-}
+#title-wrap:hover #track-title-inner { animation-play-state: paused; }
 
 #track-title {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
+  font-size: clamp(13px, 2vh, 16px);
+  font-weight: 600; letter-spacing: -0.2px;
   color: var(--text-primary);
-  padding-right: 40px; /* gap between loops */
+  padding-right: 40px;
 }
 
 #track-artist {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: clamp(11px, 1.6vh, 13px);
+  font-weight: 400; color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 /* ── PROGRESS BAR ──────────────────────────────── */
-#progress-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 6px;
-}
+#progress-wrap { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
 
 #progress-bar-bg {
-  width: 100%;
-  height: 4px;
+  width: 100%; height: 4px;
   background: rgba(255,255,255,0.12);
-  border-radius: 100px;
-  overflow: visible;
-  position: relative;
+  border-radius: 100px; overflow: visible; position: relative;
 }
 
 #progress-bar-fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 100px;
-  width: 0%;
-  position: relative;
+  height: 100%; background: var(--accent);
+  border-radius: 100px; width: 0%; position: relative;
   transition: width 0.95s linear, background 1s ease;
   box-shadow: 0 0 8px var(--accent-glow);
 }
 
 #progress-dot {
-  position: absolute;
-  right: -4px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 6px var(--accent);
+  position: absolute; right: -4px; top: 50%; transform: translateY(-50%);
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 6px var(--accent);
   transition: box-shadow 1s ease;
 }
 
 #progress-times {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  letter-spacing: 0.3px;
+  display: flex; justify-content: space-between;
+  font-size: clamp(9px, 1.4vh, 11px); font-weight: 500;
+  color: var(--text-secondary); letter-spacing: 0.3px;
 }
 
 /* ── PAUSED BADGE ──────────────────────────────── */
 #paused-badge {
-  position: fixed;
-  top: 16px; left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.7);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 20px;
-  padding: 6px 14px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  backdrop-filter: blur(10px);
-  z-index: 20;
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px; padding: 6px 14px; font-size: 12px;
+  color: var(--text-secondary); backdrop-filter: blur(10px); z-index: 20;
 }
-
-/* ── RESPONSIVE (OBS usually uses fixed size) ───── */
-
