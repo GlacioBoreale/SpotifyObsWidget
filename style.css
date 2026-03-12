@@ -17,7 +17,7 @@
   --text-secondary: rgba(255,255,255,0.55);
 
   --radius: 16px;
-  --widget-width: calc(100vw - 48px);
+  --widget-width: 420px;
 }
 
 * {
@@ -32,7 +32,13 @@ html, body {
   font-family: 'Outfit', sans-serif;
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
 }
+
+/* Scala tutto proporzionalmente alla larghezza della browser source */
+@media (max-width: 600px)  { :root { --widget-width: calc(100vw - 32px); font-size: 13px; } }
+@media (min-width: 601px) and (max-width: 900px) { :root { --widget-width: 420px; } }
+@media (min-width: 901px)  { :root { --widget-width: 480px; } }
 
 .hidden { display: none !important; }
 
@@ -205,8 +211,8 @@ html, body {
 }
 
 #album-art {
-  width: clamp(56px, 10vw, 90px);
-  height: clamp(56px, 10vw, 90px);
+  width: 72px;
+  height: 72px;
   border-radius: 10px;
   object-fit: cover;
   display: block;
@@ -338,4 +344,4 @@ html, body {
 }
 
 /* ── RESPONSIVE (OBS usually uses fixed size) ───── */
-/* Widget sempre fluido — nessun breakpoint fisso */
+
