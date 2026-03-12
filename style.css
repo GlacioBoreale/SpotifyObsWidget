@@ -137,7 +137,7 @@ html, body {
   justify-content: flex-start;
   padding: 24px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Blurred background art — disabled */
@@ -150,6 +150,31 @@ html, body {
   display: none;
 }
 
+/* ── STATUS BADGE ─────────────────────────────── */
+#status-badge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.9;
+  transition: color 0.8s ease, opacity 0.3s ease;
+}
+
+#status-badge i {
+  font-size: 9px;
+}
+
+#status-badge.paused {
+  color: rgba(255,255,255,0.35);
+}
+
 /* ── WIDGET ────────────────────────────────────── */
 #widget {
   position: relative;
@@ -160,13 +185,13 @@ html, body {
   background: rgba(0,0,0,0.55);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius);
-  padding: 14px 18px 14px 14px;
+  padding: 22px 18px 14px 14px;
   width: var(--widget-width);
   backdrop-filter: blur(24px) saturate(1.8);
   box-shadow:
     0 8px 32px rgba(0,0,0,0.4),
     0 0 0 1px rgba(255,255,255,0.04) inset,
-    0 0 40px var(--accent-glow);
+    0 0 48px var(--accent-glow);
   transition:
     opacity 0.35s cubic-bezier(0.4,0,0.2,1),
     transform 0.35s cubic-bezier(0.4,0,0.2,1),

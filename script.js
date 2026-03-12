@@ -349,6 +349,18 @@ function hslToRgb(h, s, l) {
 // ── UI HELPERS ──────────────────────────────────
 function showPaused(paused) {
   document.getElementById('paused-badge').classList.toggle('hidden', !paused);
+  const badge = document.getElementById('status-badge');
+  const icon = document.getElementById('status-icon');
+  const text = document.getElementById('status-text');
+  if (paused) {
+    badge.classList.add('paused');
+    icon.className = 'fa-solid fa-pause';
+    text.textContent = 'Paused';
+  } else {
+    badge.classList.remove('paused');
+    icon.className = 'fa-solid fa-music';
+    text.textContent = 'Now Playing';
+  }
 }
 
 function showLogin() {

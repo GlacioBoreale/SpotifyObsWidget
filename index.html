@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
 <title>Spotify OBS Overlay</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
@@ -32,6 +33,11 @@
   <div id="bg-color"></div>
 
   <div id="widget">
+    <!-- Status badge -->
+    <div id="status-badge">
+      <i id="status-icon" class="fa-solid fa-music"></i>
+      <span id="status-text">Now Playing</span>
+    </div>
     <!-- Album Art -->
     <div id="album-art-wrap">
       <img id="album-art" src="" alt="Album Art">
