@@ -8,7 +8,7 @@
 // Replace with your Spotify App Client ID
 // Or set it via the config panel
 let CLIENT_ID = localStorage.getItem('spotify_client_id') || '';
-const REDIRECT_URI = window.location.origin + window.location.pathname.replace('index.html', '') + 'callback.html';
+const REDIRECT_URI = 'https://glacioboreale.github.io/SpotifyObsWidget/callback.html';
 const SCOPES = 'user-read-currently-playing user-read-playback-state';
 const API_POLL_INTERVAL = 5000;   // ms — fetch from Spotify
 const PROGRESS_TICK = 1000;       // ms — local progress increment
@@ -363,6 +363,19 @@ function showOverlay() {
 
 // ── INIT ────────────────────────────────────────
 async function init() {
+  // Read tokens from URL hash (injected by auth.html for OBS)
+  if (window.location.hash) {
+    const params = new URLSearchParams(window.location.hash.slice(1));
+    if (params.get('access_token')) {
+      localStorage.setItem('spotify_access_token', params.get('access_token'));
+      localStorage.setItem('spotify_refresh_token', params.get('refresh_token'));
+      localStorage.setItem('spotify_client_id', params.get('client_id'));
+      localStorage.setItem('spotify_token_expires', params.get('expires'));
+      // Clean URL without reloading
+      history.replaceState(null, '', window.location.pathname);
+    }
+  }
+
   CLIENT_ID = localStorage.getItem('spotify_client_id') || '';
 
   // Pre-fill config if saved

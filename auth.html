@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spotify OBS — Authorisation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: #0d0d0f;
+    color: #fff;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 20px;
+    padding: 40px;
+    max-width: 480px;
+    width: 100%;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .logo { color: #1DB954; display:flex; align-items:center; gap:10px; font-size:18px; font-weight:600; }
+  .logo svg { width:32px; height:32px; }
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; }
+  p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+  label { font-size: 12px; color: rgba(255,255,255,0.55); display:block; margin-bottom:6px; }
+  input {
+    width: 100%;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 13px;
+    font-family: monospace;
+  }
+  input:focus { outline:none; border-color: #1DB954; }
+  .btn {
+    display: flex; align-items: center; justify-content:center; gap: 8px;
+    background: #1DB954; color: #000;
+    border: none; border-radius: 50px;
+    padding: 13px 28px;
+    font-size: 14px; font-weight: 700;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    width: 100%;
+  }
+  .btn:hover { transform: scale(1.02); box-shadow: 0 0 24px rgba(29,185,84,0.4); }
+  .btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+  /* Token result box */
+  #result { display:none; flex-direction:column; gap:16px; }
+  .success-badge {
+    display: inline-flex; align-items:center; gap:6px;
+    background: rgba(29,185,84,0.15);
+    border: 1px solid rgba(29,185,84,0.3);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px; color: #1DB954; font-weight:600;
+    width: fit-content;
+  }
+  .obs-url-box {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 11px;
+    font-family: monospace;
+    word-break: break-all;
+    color: rgba(255,255,255,0.8);
+    line-height: 1.5;
+  }
+  .copy-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #fff;
+    font-size: 12px;
+    font-family: 'Outfit', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+    width: fit-content;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.14); }
+  .step {
+    display:flex; align-items:flex-start; gap:10px;
+    font-size: 13px; color: rgba(255,255,255,0.7);
+    line-height: 1.5;
+  }
+  .step-num {
+    background: rgba(29,185,84,0.2);
+    color: #1DB954;
+    border-radius: 50%;
+    width:22px; height:22px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700;
+    flex-shrink:0; margin-top:1px;
+  }
+  .divider { border:none; border-top: 1px solid rgba(255,255,255,0.08); }
+  #status { font-size:12px; color:rgba(255,255,255,0.4); min-height:16px; }
+  .err { color: #ff6b6b !important; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+    </svg>
+    Spotify OBS Overlay
+  </div>
+
+  <!-- STEP 1 — input client id -->
+  <div id="login-form">
+    <h1>Authorise once</h1>
+    <p>This page handles the Spotify login in your browser. After connecting, you'll get the OBS URL to paste directly into your Browser Source.</p>
+    <hr class="divider">
+    <div>
+      <label>Spotify Client ID</label>
+      <input type="text" id="cid" placeholder="e.g. 4b3fa8..." autocomplete="off" />
+    </div>
+    <p id="status"></p>
+    <button class="btn" onclick="doLogin()">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+      </svg>
+      Connect with Spotify
+    </button>
+  </div>
+
+  <!-- STEP 2 — after auth, show OBS URL -->
+  <div id="result">
+    <div class="success-badge">✓ Connected to Spotify</div>
+    <h1>Copy your OBS URL</h1>
+    <p>Paste this URL in OBS → Browser Source → URL field. The tokens are embedded so OBS can authenticate automatically.</p>
+    <hr class="divider">
+
+    <div class="step"><div class="step-num">1</div><span>Copy the URL below</span></div>
+    <div class="obs-url-box" id="obs-url-display">Generating...</div>
+    <button class="copy-btn" onclick="copyUrl()">📋 Copy URL</button>
+
+    <hr class="divider">
+    <div class="step"><div class="step-num">2</div><span>In OBS: Sources → Add → Browser Source</span></div>
+    <div class="step"><div class="step-num">3</div><span>Paste the URL, set Width: <strong>420</strong>, Height: <strong>140</strong>, enable <strong>Allow transparency</strong></span></div>
+    <div class="step"><div class="step-num">4</div><span>Done! The overlay will auto-refresh every 5 seconds</span></div>
+  </div>
+</div>
+
+<script>
+const REDIRECT_URI = 'https://glacioboreale.github.io/SpotifyObsWidget/callback.html';
+const SCOPES = 'user-read-currently-playing user-read-playback-state';
+
+function generateRandom(length) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+  const arr = new Uint8Array(length);
+  crypto.getRandomValues(arr);
+  return Array.from(arr, b => chars[b % chars.length]).join('');
+}
+
+async function generateCodeChallenge(verifier) {
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+}
+
+async function doLogin() {
+  const cid = document.getElementById('cid').value.trim();
+  if (!cid) {
+    setStatus('Please enter your Client ID.', true);
+    return;
+  }
+  setStatus('Redirecting to Spotify...');
+  localStorage.setItem('spotify_client_id', cid);
+
+  const verifier = generateRandom(64);
+  const challenge = await generateCodeChallenge(verifier);
+  localStorage.setItem('spotify_code_verifier', verifier);
+  localStorage.setItem('spotify_redirect_uri', REDIRECT_URI);
+
+  const params = new URLSearchParams({
+    client_id: cid,
+    response_type: 'code',
+    redirect_uri: REDIRECT_URI,
+    code_challenge_method: 'S256',
+    code_challenge: challenge,
+    scope: SCOPES,
+  });
+  window.location.href = `https://accounts.spotify.com/authorize?${params}`;
+}
+
+function setStatus(msg, err) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = err ? 'err' : '';
+}
+
+function copyUrl() {
+  const url = document.getElementById('obs-url-display').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy URL', 2000);
+  });
+}
+
+// On load: check if we've just come back from Spotify callback with tokens
+(function checkTokens() {
+  const access = localStorage.getItem('spotify_access_token');
+  const refresh = localStorage.getItem('spotify_refresh_token');
+  const clientId = localStorage.getItem('spotify_client_id');
+
+  if (access && refresh && clientId) {
+    // Build the OBS URL with tokens embedded as hash params
+    // index.html will read these and store them in its own localStorage
+    const base = 'https://glacioboreale.github.io/SpotifyObsWidget/';
+    const hash = new URLSearchParams({
+      access_token: access,
+      refresh_token: refresh,
+      client_id: clientId,
+      expires: localStorage.getItem('spotify_token_expires') || '',
+    }).toString();
+    const obsUrl = `${base}#${hash}`;
+
+    document.getElementById('obs-url-display').textContent = obsUrl;
+    document.getElementById('login-form').style.display = 'none';
+    document.getElementById('result').style.display = 'flex';
+  } else {
+    // Pre-fill client id if saved
+    const saved = localStorage.getItem('spotify_client_id');
+    if (saved) document.getElementById('cid').value = saved;
+  }
+})();
+</script>
+</body>
+</html>
