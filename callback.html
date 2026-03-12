@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Spotify Auth Callback</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #0a0a0a;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid #333;
+    border-top-color: #1DB954;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  p { color: #888; font-size: 14px; }
+  .error { color: #ff4d4d; font-size: 14px; text-align: center; max-width: 400px; }
+</style>
+</head>
+<body>
+<div class="spinner"></div>
+<p id="status">Authenticating with Spotify...</p>
+
+<script>
+(async () => {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  const error = params.get('error');
+
+  if (error) {
+    document.getElementById('status').textContent = '';
+    document.body.innerHTML += `<p class="error">Auth error: ${error}. <a href="index.html" style="color:#1DB954">Go back</a></p>`;
+    return;
+  }
+
+  if (!code) {
+    document.getElementById('status').textContent = 'No auth code found.';
+    return;
+  }
+
+  const codeVerifier = localStorage.getItem('spotify_code_verifier');
+  const clientId = localStorage.getItem('spotify_client_id');
+  const redirectUri = localStorage.getItem('spotify_redirect_uri');
+
+  if (!codeVerifier || !clientId) {
+    document.getElementById('status').textContent = 'Session data missing. Please try again.';
+    return;
+  }
+
+  try {
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        code,
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        code_verifier: codeVerifier,
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.access_token) {
+      localStorage.setItem('spotify_access_token', data.access_token);
+      localStorage.setItem('spotify_refresh_token', data.refresh_token);
+      localStorage.setItem('spotify_token_expires', Date.now() + data.expires_in * 1000);
+      localStorage.removeItem('spotify_code_verifier');
+      document.getElementById('status').textContent = '✓ Connected! Redirecting...';
+      setTimeout(() => window.location.href = 'index.html', 800);
+    } else {
+      throw new Error(data.error_description || 'Token exchange failed');
+    }
+  } catch (e) {
+    document.getElementById('status').textContent = '';
+    document.body.innerHTML += `<p class="error">Error: ${e.message}. <a href="index.html" style="color:#1DB954">Go back</a></p>`;
+  }
+})();
+</script>
+</body>
+</html>
