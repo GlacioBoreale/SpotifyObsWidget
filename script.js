@@ -375,3 +375,109 @@ async function init() {
 
 window.addEventListener('resize', () => checkMarquee());
 init();
+initTwitchBot();
+
+// ── TWITCH BOT ──────────────────────────────────
+let twitchWs = null;
+let twitchReconnectTimeout = null;
+
+function initTwitchBot() {
+  const token   = localStorage.getItem('twitch_oauth_token');
+  const channel = localStorage.getItem('twitch_channel');
+  const botname = localStorage.getItem('twitch_botname');
+  if (!token || !channel || !botname) return; // non configurato
+  connectTwitch(token, channel, botname);
+}
+
+function connectTwitch(token, channel, botname) {
+  if (twitchWs) { twitchWs.close(); twitchWs = null; }
+
+  const ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
+  twitchWs = ws;
+
+  ws.onopen = () => {
+    ws.send(`PASS ${token}`);
+    ws.send(`NICK ${botname}`);
+    ws.send(`JOIN #${channel}`);
+    console.log(`[Twitch] Connected to #${channel}`);
+  };
+
+  ws.onmessage = async (event) => {
+    const raw = event.data;
+
+    // Risponde ai PING di Twitch
+    if (raw.startsWith('PING')) {
+      ws.send('PONG :tmi.twitch.tv');
+      return;
+    }
+
+    // Parsa messaggi PRIVMSG
+    const match = raw.match(/^:(.+?)!.+? PRIVMSG #(.+?) :(.+)$/);
+    if (!match) return;
+    const [, user, ch, message] = match;
+    const cmd = message.trim().toLowerCase();
+
+    if (cmd === '!upnext') {
+      const reply = await getUpNext();
+      sendTwitchMessage(ws, channel, reply);
+    } else if (cmd === '!song') {
+      const reply = await getCurrentSongText();
+      sendTwitchMessage(ws, channel, reply);
+    }
+  };
+
+  ws.onerror = (e) => console.warn('[Twitch] WS error', e);
+
+  ws.onclose = () => {
+    console.warn('[Twitch] Disconnected, reconnecting in 10s...');
+    twitchReconnectTimeout = setTimeout(() => {
+      const t = localStorage.getItem('twitch_oauth_token');
+      const c = localStorage.getItem('twitch_channel');
+      const b = localStorage.getItem('twitch_botname');
+      if (t && c && b) connectTwitch(t, c, b);
+    }, 10000);
+  };
+}
+
+function sendTwitchMessage(ws, channel, text) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(`PRIVMSG #${channel} :${text}`);
+  }
+}
+
+async function getUpNext() {
+  const token = await getValidToken();
+  if (!token) return 'Spotify non connesso.';
+  try {
+    const res = await fetch('https://api.spotify.com/v1/me/player/queue', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return 'Impossibile leggere la coda Spotify.';
+    const data = await res.json();
+    const next = data.queue?.[0];
+    if (!next) return 'La coda Spotify e\' vuota.';
+    const title  = next.name;
+    const artist = next.artists?.map(a => a.name).join(', ') || '';
+    return `Prossima canzone: ${title} - ${artist}`;
+  } catch (e) {
+    return 'Errore nel leggere la coda.';
+  }
+}
+
+async function getCurrentSongText() {
+  const token = await getValidToken();
+  if (!token) return 'Spotify non connesso.';
+  try {
+    const res = await fetch('https://api.spotify.com/v1/me/player/currently-playing', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (res.status === 204) return 'Nessuna canzone in riproduzione.';
+    const data = await res.json();
+    if (!data?.item) return 'Nessuna canzone in riproduzione.';
+    const title  = data.item.name;
+    const artist = data.item.artists?.map(a => a.name).join(', ') || '';
+    return `In riproduzione: ${title} - ${artist}`;
+  } catch (e) {
+    return 'Errore nel leggere la canzone.';
+  }
+}

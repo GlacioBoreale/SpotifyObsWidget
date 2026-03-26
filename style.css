@@ -30,37 +30,54 @@ html, body {
 
 .hidden { display: none !important; }
 
-/* ── LOGIN SCREEN ──────────────────────────────── */
+/* ── LOGIN SCREEN — usa tutto il viewport del browser ── */
 #login-screen {
-  width: 840px; height: 280px;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  background: transparent;
+  background: #0d0d0f;
+  z-index: 9999;
 }
 
 .login-card {
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
-  border-radius: 48px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 24px;
   padding: 48px 40px;
   text-align: center;
   backdrop-filter: blur(20px);
-  width: 500px;
+  width: 360px;
   display: flex; flex-direction: column; align-items: center; gap: 16px;
 }
 
-.spotify-logo { width: 64px; height: 64px; color: #1DB954; margin-bottom: 4px; }
-.login-card h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.3px; }
-.login-card p { font-size: 18px; color: var(--text-secondary); line-height: 1.5; }
+.spotify-logo { width: 48px; height: 48px; color: #1DB954; margin-bottom: 4px; }
+.login-card h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; color: #fff; }
+.login-card p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.5; }
 
 #login-btn {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 8px;
   background: #1DB954; color: #000;
   border: none; border-radius: 50px;
-  padding: 16px 32px; font-size: 18px; font-weight: 600;
+  padding: 12px 24px; font-size: 14px; font-weight: 600;
   font-family: 'Outfit', sans-serif; cursor: pointer; margin-top: 8px;
   transition: transform 0.15s, box-shadow 0.15s;
 }
 #login-btn:hover { transform: scale(1.04); box-shadow: 0 0 20px rgba(29,185,84,0.4); }
+
+.login-card input {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 13px;
+  font-family: monospace;
+  text-align: center;
+}
+.login-card input:focus { outline: none; border-color: #1DB954; }
+.login-card input::placeholder { color: rgba(255,255,255,0.3); }
 
 /* ── CONFIG PANEL — nascosto ───────────────────── */
 #config-panel { display: none; }

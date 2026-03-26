@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Twitch Bot Auth</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: #0d0d0f; color: #fff;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.10);
+    border-radius: 20px; padding: 40px;
+    max-width: 500px; width: 100%;
+    display: flex; flex-direction: column; gap: 20px;
+  }
+  .logo { color: #9146FF; display:flex; align-items:center; gap:10px; font-size:18px; font-weight:600; }
+  .logo svg { width:32px; height:32px; }
+  h1 { font-size: 22px; font-weight: 700; }
+  p { font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+  label { font-size: 12px; color: rgba(255,255,255,0.55); display:block; margin-bottom:6px; }
+  input {
+    width: 100%; background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+    padding: 10px 14px; color: #fff; font-size: 13px; font-family: monospace;
+  }
+  input:focus { outline:none; border-color: #9146FF; }
+  .btn {
+    display: flex; align-items: center; justify-content:center; gap: 8px;
+    background: #9146FF; color: #fff; border: none; border-radius: 50px;
+    padding: 13px 28px; font-size: 14px; font-weight: 700;
+    font-family: 'Outfit', sans-serif; cursor: pointer; width: 100%;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn:hover { transform: scale(1.02); box-shadow: 0 0 24px rgba(145,70,255,0.4); }
+  .divider { border:none; border-top: 1px solid rgba(255,255,255,0.08); }
+  .step { display:flex; align-items:flex-start; gap:10px; font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.5; }
+  .step-num {
+    background: rgba(145,70,255,0.2); color: #9146FF;
+    border-radius: 50%; width:22px; height:22px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:700; flex-shrink:0; margin-top:1px;
+  }
+  .result { display:none; flex-direction:column; gap:16px; }
+  .success { display:inline-flex; align-items:center; gap:6px; background: rgba(145,70,255,0.15); border: 1px solid rgba(145,70,255,0.3); border-radius:20px; padding:6px 14px; font-size:12px; color:#9146FF; font-weight:600; width:fit-content; }
+  .token-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.12); border-radius:10px; padding:14px; font-size:11px; font-family:monospace; word-break:break-all; color:rgba(255,255,255,0.8); line-height:1.5; }
+  .copy-btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius:8px; padding:8px 16px; color:#fff; font-size:12px; font-family:'Outfit',sans-serif; cursor:pointer; width:fit-content; }
+  .copy-btn:hover { background: rgba(255,255,255,0.14); }
+  #status { font-size:12px; color:rgba(255,255,255,0.4); min-height:16px; }
+  .err { color: #ff6b6b !important; }
+  .note { font-size: 11px; color: rgba(255,255,255,0.35); font-style: italic; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+      <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
+    </svg>
+    Twitch Bot Setup
+  </div>
+
+  <div id="setup-form">
+    <h1>Connetti il bot Twitch</h1>
+    <p>Il bot risponderà in chat con <strong>!upnext</strong> usando la coda Spotify. Usa un account Twitch dedicato per il bot, o il tuo stesso account.</p>
+    <hr class="divider">
+
+    <div class="step"><div class="step-num">1</div><span>Vai su <a href="https://twitchapps.com/tmi/" target="_blank" style="color:#9146FF">twitchapps.com/tmi</a> e genera un token OAuth per il tuo account bot</span></div>
+    <div class="step"><div class="step-num">2</div><span>Incolla il token qui sotto (inizia con <code>oauth:</code>)</span></div>
+
+    <hr class="divider">
+    <div>
+      <label>Twitch OAuth Token</label>
+      <input type="password" id="twitch-token" placeholder="oauth:xxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" />
+    </div>
+    <div>
+      <label>Nome canale Twitch (il tuo, in minuscolo)</label>
+      <input type="text" id="twitch-channel" placeholder="es. glacioboreale" autocomplete="off" />
+    </div>
+    <div>
+      <label>Nome utente del bot (l'account che ha generato il token)</label>
+      <input type="text" id="twitch-botname" placeholder="es. glacioboreale_bot" autocomplete="off" />
+    </div>
+    <p id="status"></p>
+    <button class="btn" onclick="saveAndTest()">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+      Salva e connetti
+    </button>
+    <p class="note">Il token viene salvato solo nel tuo browser (localStorage). Non viene mai inviato a server esterni.</p>
+  </div>
+
+  <div class="result" id="result">
+    <div class="success">✓ Configurazione salvata</div>
+    <h1>Bot configurato!</h1>
+    <p>I dati sono salvati. Ora ricarica la web source in OBS oppure apri di nuovo l'overlay — il bot si connetterà automaticamente alla chat.</p>
+    <hr class="divider">
+    <div class="step"><div class="step-num">1</div><span>In OBS, tasto destro sulla Browser Source → <strong>Refresh</strong></span></div>
+    <div class="step"><div class="step-num">2</div><span>Qualcuno scrive <strong>!upnext</strong> in chat → il bot risponde con la canzone successiva</span></div>
+    <div class="step"><div class="step-num">3</div><span>Funziona anche <strong>!song</strong> per la canzone corrente</span></div>
+    <hr class="divider">
+    <button class="btn" style="background:rgba(255,255,255,0.08);color:#fff;border:1px solid rgba(255,255,255,0.15);" onclick="resetConfig()">Resetta configurazione</button>
+  </div>
+</div>
+
+<script>
+function saveAndTest() {
+  const token = document.getElementById('twitch-token').value.trim();
+  const channel = document.getElementById('twitch-channel').value.trim().toLowerCase();
+  const botname = document.getElementById('twitch-botname').value.trim().toLowerCase();
+
+  if (!token || !channel || !botname) {
+    setStatus('Compila tutti i campi.', true); return;
+  }
+  if (!token.startsWith('oauth:')) {
+    setStatus('Il token deve iniziare con "oauth:"', true); return;
+  }
+
+  localStorage.setItem('twitch_oauth_token', token);
+  localStorage.setItem('twitch_channel', channel);
+  localStorage.setItem('twitch_botname', botname);
+
+  setStatus('Salvato!');
+  document.getElementById('setup-form').style.display = 'none';
+  document.getElementById('result').style.display = 'flex';
+}
+
+function resetConfig() {
+  localStorage.removeItem('twitch_oauth_token');
+  localStorage.removeItem('twitch_channel');
+  localStorage.removeItem('twitch_botname');
+  window.location.reload();
+}
+
+function setStatus(msg, err) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = err ? 'err' : '';
+}
+
+// Se già configurato, mostra risultato
+(function() {
+  const token = localStorage.getItem('twitch_oauth_token');
+  const channel = localStorage.getItem('twitch_channel');
+  const botname = localStorage.getItem('twitch_botname');
+  if (token && channel && botname) {
+    document.getElementById('setup-form').style.display = 'none';
+    document.getElementById('result').style.display = 'flex';
+  } else {
+    // Pre-fill se parzialmente salvato
+    if (channel) document.getElementById('twitch-channel').value = channel;
+    if (botname) document.getElementById('twitch-botname').value = botname;
+  }
+})();
+</script>
+</body>
+</html>
