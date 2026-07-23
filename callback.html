@@ -79,7 +79,7 @@
       localStorage.setItem('spotify_token_expires', Date.now() + data.expires_in * 1000);
       localStorage.removeItem('spotify_code_verifier');
       document.getElementById('status').textContent = '✓ Connected! Redirecting...';
-      setTimeout(() => window.location.href = 'index.html', 800);
+      setTimeout(() => window.location.href = 'auth.html', 800);
     } else {
       throw new Error(data.error_description || 'Token exchange failed');
     }

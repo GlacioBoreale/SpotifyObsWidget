@@ -1,98 +1,70 @@
-# 🎵 Spotify OBS Overlay
+# SpotifyObsWidget
 
-A beautiful, dynamic Spotify overlay for OBS Studio — hosted on GitHub Pages, zero backend required.
-
-![Preview](https://i.imgur.com/placeholder.png)
-
-## ✨ Features
-
-- **Auto colour extraction** — the accent colour adapts to each album cover
-- **Smooth progress bar** — locally updated every second, synced via API every 5s
-- **Marquee scrolling** — long song titles scroll automatically
-- **Fade transition** — elegant crossfade when the song changes
-- **Blurred background** — album art used as a soft ambient background
-- **Paused indicator** — shows when Spotify is paused
-- **PKCE OAuth** — secure login, no backend needed
+spotify overlay for obs. shows current song, album art, progress bar. colors change based on album cover.
 
 ---
 
-## 🚀 Setup (5 minutes)
+## what it does
 
-### 1. Fork / clone this repo
+- shows currently playing song from spotify
+- extracts accent color from album art
+- smooth progress bar (local tick + api sync)
+- marquee for long titles
+- fade transition on song change
+- auto-hides after 1 minute if nothing is playing
+- twitch bot integrated (!song, !upnext)
 
-```bash
-git clone https://github.com/YOURUSERNAME/spotify-obs-overlay
+## setup
+
+### 1. spotify app
+
+go to [developer.spotify.com/dashboard](https://developer.spotify.com/dashboard), create an app, add this redirect uri:
+
+```
+https://glacioboreale.github.io/SpotifyObsWidget/callback.html
 ```
 
-### 2. Create a Spotify App
+copy the client id.
 
-1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-2. Create a new App
-3. Copy your **Client ID**
-4. Add this Redirect URI:
-   ```
-   https://YOURUSERNAME.github.io/spotify-obs-overlay/callback.html
-   ```
+### 2. login
 
-### 3. Enable GitHub Pages
+open this in your browser (not obs):
 
-In your repo → **Settings → Pages → Deploy from `main` branch**
-
-Your URL will be:
 ```
-https://YOURUSERNAME.github.io/spotify-obs-overlay/
+https://glacioboreale.github.io/SpotifyObsWidget/auth.html
 ```
 
-### 4. Authorise
+paste the client id, connect with spotify, copy the obs url it gives you.
 
-Open the URL, enter your Client ID in the config panel (bottom right), click **Save & Login**, and authorise with Spotify.
+### 3. obs
 
-The token is stored in `localStorage` — it's yours only.
+add a browser source, paste the url, set width `840` height `280`, enable **allow transparency**.
 
-### 5. Add to OBS
-
-1. In OBS → **Sources → Browser Source**
-2. URL: `https://YOURUSERNAME.github.io/spotify-obs-overlay/`
-3. Width: `420`, Height: `140` (or adjust to taste)
-4. ✅ Shutdown source when not visible
-5. ✅ Refresh browser when scene becomes active
+you only need to do this once. the token refreshes automatically.
 
 ---
 
-## 🎨 Customisation
+## twitch bot (optional)
 
-All visual variables are in `style.css` under `:root`:
+open `twitch-auth.html`, get an oauth token from [twitchapps.com/tmi](https://twitchapps.com/tmi), fill in the fields.
 
-| Variable | Default | Description |
-|---|---|---|
-| `--widget-width` | `380px` | Widget width |
-| `--radius` | `16px` | Border radius |
-
-The accent colour is applied automatically from the album art. No configuration needed.
+commands:
+- `!song` — current song
+- `!upnext` — next in queue
 
 ---
 
-## 📁 File Structure
+## files
 
 ```
-spotify-obs-overlay/
-├── index.html      ← OBS overlay page
-├── callback.html   ← Spotify OAuth callback
-├── script.js       ← API logic, colour extraction
-├── style.css       ← All styling
-└── README.md
+index.html       obs overlay
+auth.html        spotify login (open in browser)
+callback.html    oauth callback
+twitch-auth.html twitch bot setup
+script.js        logic
+style.css        styles
 ```
 
 ---
 
-## 🔒 Privacy
-
-- No server, no data collection
-- Tokens stored only in your browser's `localStorage`
-- The overlay runs entirely client-side
-
----
-
-## 📄 License
-
-MIT — free to use, modify, and share.
+no backend. no server. tokens stay in your browser.

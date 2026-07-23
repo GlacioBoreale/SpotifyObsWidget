@@ -100,6 +100,15 @@ async function getValidToken() {
   return localStorage.getItem('spotify_access_token');
 }
 
+// Prova refresh silenzioso all'avvio prima di mostrare login
+async function tryAutoRefresh() {
+  const refresh = localStorage.getItem('spotify_refresh_token');
+  const clientId = localStorage.getItem('spotify_client_id');
+  if (!refresh || !clientId) return false;
+  CLIENT_ID = clientId;
+  return await refreshToken();
+}
+
 // FETCH CURRENT TRACK
 async function fetchCurrentTrack() {
   const token = await getValidToken();
@@ -363,7 +372,16 @@ async function init() {
   const input = document.getElementById('client-id-input');
   if (input && CLIENT_ID) input.value = CLIENT_ID;
 
-  const token = localStorage.getItem('spotify_access_token');
+  let token = localStorage.getItem('spotify_access_token');
+
+  // Se non c'è access token ma c'è refresh token, prova a rinnovare silenziosamente
+  if (!token) {
+    const refreshed = await tryAutoRefresh();
+    if (refreshed) {
+      token = localStorage.getItem('spotify_access_token');
+    }
+  }
+
   if (!token) { showLogin(); return; }
 
   showOverlay();
