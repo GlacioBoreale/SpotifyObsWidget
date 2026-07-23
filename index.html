@@ -9,7 +9,6 @@
 </head>
 <body>
 
-<!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-card">
     <svg class="spotify-logo" viewBox="0 0 24 24" fill="currentColor">
@@ -27,25 +26,21 @@
   </div>
 </div>
 
-<!-- OVERLAY -->
 <div id="overlay" class="hidden">
-  <!-- Blurred background -->
   <div id="bg-blur"></div>
   <div id="bg-color"></div>
 
   <div id="widget">
-    <!-- Status badge -->
     <div id="status-badge">
       <i id="status-icon" class="fa-solid fa-music"></i>
       <span id="status-text">Now Playing</span>
     </div>
-    <!-- Album Art -->
+
     <div id="album-art-wrap">
       <img id="album-art" src="" alt="Album Art">
       <div id="album-glow"></div>
     </div>
 
-    <!-- Info -->
     <div id="track-info">
       <div id="title-wrap">
         <div id="track-title-inner">
@@ -54,7 +49,6 @@
       </div>
       <div id="track-artist">—</div>
 
-      <!-- Progress -->
       <div id="progress-wrap">
         <div id="progress-bar-bg">
           <div id="progress-bar-fill">
@@ -69,13 +63,12 @@
     </div>
   </div>
 
-  <!-- Paused indicator -->
   <div id="paused-badge" class="hidden">
     <span>⏸ Paused</span>
   </div>
 </div>
 
-<!-- Config panel (only visible outside OBS) -->
+<!-- Config panel (Su obs non si vede) -->
 <div id="config-panel">
   <label>Client ID:</label>
   <input type="text" id="client-id-input" placeholder="Your Spotify Client ID" />

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Spotify OBS — Authorisation</title>
+<title>Spotify OBS - Authorisation</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
@@ -53,7 +53,7 @@
   .btn:hover { transform: scale(1.02); box-shadow: 0 0 24px rgba(29,185,84,0.4); }
   .btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
 
-  /* Token result box */
+  /* Token's result box */
   #result { display:none; flex-direction:column; gap:16px; }
   .success-badge {
     display: inline-flex; align-items:center; gap:6px;
@@ -116,7 +116,7 @@
     Spotify OBS Overlay
   </div>
 
-  <!-- STEP 1 — input client id -->
+  <!-- Porco Diavolo 1 -->
   <div id="login-form">
     <h1>Authorise once</h1>
     <p>This page handles the Spotify login in your browser. After connecting, you'll get the OBS URL to paste directly into your Browser Source.</p>
@@ -134,7 +134,7 @@
     </button>
   </div>
 
-  <!-- STEP 2 — after auth, show OBS URL -->
+  <!-- Porca Miseria 2 -->
   <div id="result">
     <div class="success-badge">✓ Connected to Spotify</div>
     <h1>Copy your OBS URL</h1>
@@ -210,15 +210,15 @@ function copyUrl() {
   });
 }
 
-// On load: check if we've just come back from Spotify callback with tokens
+// On load: Controlla se si è tornati dallo spotify callback coi token
 (function checkTokens() {
   const access = localStorage.getItem('spotify_access_token');
   const refresh = localStorage.getItem('spotify_refresh_token');
   const clientId = localStorage.getItem('spotify_client_id');
 
   if (access && refresh && clientId) {
-    // Build the OBS URL with tokens embedded as hash params
-    // index.html will read these and store them in its own localStorage
+    // Crea l'URL OBS con i token sotto forma di parametri hash
+    // index.html li legge e li salva nel LocalStorage
     const base = 'https://glacioboreale.github.io/SpotifyObsWidget/';
     const hash = new URLSearchParams({
       access_token: access,
@@ -232,7 +232,7 @@ function copyUrl() {
     document.getElementById('login-form').style.display = 'none';
     document.getElementById('result').style.display = 'flex';
   } else {
-    // Pre-fill client id if saved
+    // Pre-fill del client id se salvato
     const saved = localStorage.getItem('spotify_client_id');
     if (saved) document.getElementById('cid').value = saved;
   }
