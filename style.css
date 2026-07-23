@@ -23,6 +23,11 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* sfondo scuro solo nel browser, non in obs */
+@media screen {
+  html, body { background: #1a1a1a; }
+}
+
 .hidden { display: none !important; }
 
 /* ———→ LOGIN SCREEN ←———→ usa tutto il viewport del browser ←——— */
