@@ -121,7 +121,7 @@ html, body {
   display: flex;
   align-items: center;
   gap: 32px;
-  background: rgba(0,0,0,0.78);
+  background: rgba(0,0,0,0.90);
   border: 1px solid var(--surface-border);
   border-radius: var(--radius);
   padding: 56px 36px 32px 32px;
