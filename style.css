@@ -25,7 +25,7 @@ html, body {
 
 /* sfondo scuro solo nel browser, non in obs */
 @media screen {
-  html, body { background: #1a1a1a; }
+  html, body { background: transparent; }
 }
 
 .hidden { display: none !important; }
@@ -36,7 +36,7 @@ html, body {
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  background: trasparent;
+  background: #0d0d0f;
   z-index: 9999;
 }
 
