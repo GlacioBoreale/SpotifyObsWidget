@@ -6,7 +6,10 @@ const REDIRECT_URI = 'https://glacioboreale.github.io/SpotifyObsWidget/callback.
 const SCOPES = 'user-read-currently-playing user-read-playback-state';
 const API_POLL_INTERVAL = 5000;
 const PROGRESS_TICK = 1000;
-const HIDE_AFTER_MS = 60000; // 1 minuto senza riproduzione
+const HIDE_AFTER_MS = 60000;
+
+// LAYOUT — letto una volta all'avvio
+const LAYOUT = new URLSearchParams(window.location.search).get('layout') === '2' ? 2 : 1;
 
 // STATE
 let currentTrackId = null;
@@ -100,7 +103,6 @@ async function getValidToken() {
   return localStorage.getItem('spotify_access_token');
 }
 
-// Prova refresh silenzioso all'avvio prima di mostrare login
 async function tryAutoRefresh() {
   const refresh = localStorage.getItem('spotify_refresh_token');
   const clientId = localStorage.getItem('spotify_client_id');
@@ -120,20 +122,14 @@ async function fetchCurrentTrack() {
     });
 
     if (res.status === 204 || res.status === 404) {
-      setStatus(true);
+      setPlaying(false);
       scheduleHide();
       return;
     }
-
     if (res.status === 401) { showLogin(); return; }
 
     const data = await res.json();
-
-    if (!data || !data.item) {
-      setStatus(true);
-      scheduleHide();
-      return;
-    }
+    if (!data || !data.item) { setPlaying(false); scheduleHide(); return; }
 
     isPlaying = data.is_playing;
     const track = data.item;
@@ -148,10 +144,10 @@ async function fetchCurrentTrack() {
     }
 
     if (!isPlaying) {
-      setStatus(true);
+      setPlaying(false);
       scheduleHide();
     } else {
-      setStatus(false);
+      setPlaying(true);
       cancelHide();
       showWidget();
     }
@@ -165,25 +161,28 @@ async function fetchCurrentTrack() {
 
 // SONG TRANSITION
 async function transitionToNewSong(track) {
-  const widget = document.getElementById('widget');
-  const albumArt = document.getElementById('album-art');
-  const titleEl = document.getElementById('track-title');
-  const artistEl = document.getElementById('track-artist');
-
+  const widget = el('widget');
   widget.style.opacity = '0';
-  widget.style.transform = 'translateY(6px)';
-  await sleep(350);
+  widget.style.transform = 'translateY(5px)';
+  await sleep(300);
 
   const imageUrl = track.album?.images?.[0]?.url || '';
-  albumArt.src = imageUrl;
-  titleEl.textContent = track.name || '—';
-  artistEl.textContent = track.artists?.map(a => a.name).join(', ') || '—';
+  const title  = track.name || '—';
+  const artist = track.artists?.map(a => a.name).join(', ') || '—';
+  const album  = track.album?.name || '—';
 
-  if (imageUrl) {
-    extractColorAndApply(imageUrl);
-    updateBgBlur(imageUrl);
+  if (LAYOUT === 2) {
+    el('album-art2').src      = imageUrl;
+    el('track-title2').textContent  = title;
+    el('track-artist2').textContent = artist;
+    el('track-album2').textContent  = album;
+  } else {
+    el('album-art').src       = imageUrl;
+    el('track-title').textContent   = title;
+    el('track-artist').textContent  = artist;
   }
 
+  if (imageUrl) extractColorAndApply(imageUrl);
   requestAnimationFrame(() => checkMarquee());
 
   widget.style.opacity = '1';
@@ -192,7 +191,12 @@ async function transitionToNewSong(track) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-// PROGRESS BAR
+// helper: get element by id with layout suffix if needed
+function el(id) {
+  return document.getElementById(id);
+}
+
+// PROGRESS
 function startProgressTick() {
   clearInterval(progressInterval);
   progressInterval = setInterval(() => {
@@ -205,9 +209,16 @@ function startProgressTick() {
 
 function updateProgressUI() {
   const percent = durationMs > 0 ? (progressMs / durationMs) * 100 : 0;
-  document.getElementById('progress-bar-fill').style.width = `${percent}%`;
-  document.getElementById('time-current').textContent = formatTime(progressMs);
-  document.getElementById('time-total').textContent = formatTime(durationMs);
+
+  if (LAYOUT === 2) {
+    el('progress-bar-fill2').style.width = `${percent}%`;
+    const remaining = Math.max(0, durationMs - progressMs);
+    el('time-remaining').textContent = '-' + formatTime(remaining);
+  } else {
+    el('progress-bar-fill').style.width = `${percent}%`;
+    el('time-current').textContent = formatTime(progressMs);
+    el('time-total').textContent   = formatTime(durationMs);
+  }
 }
 
 function formatTime(ms) {
@@ -220,13 +231,24 @@ function formatTime(ms) {
 
 // MARQUEE
 function checkMarquee() {
-  const wrap = document.getElementById('title-wrap');
-  const inner = document.getElementById('track-title-inner');
-  const span = document.getElementById('track-title');
-  inner.classList.remove('marquee-active');
-  if (span.scrollWidth > wrap.offsetWidth) {
-    inner.style.setProperty('--marquee-distance', `${span.scrollWidth + 40}px`);
-    inner.classList.add('marquee-active');
+  if (LAYOUT === 2) {
+    const wrap  = el('title-wrap2');
+    const inner = el('track-title-inner2');
+    const span  = el('track-title2');
+    inner.classList.remove('marquee-active');
+    if (span.scrollWidth > wrap.offsetWidth) {
+      inner.style.setProperty('--marquee-distance', `${span.scrollWidth + 60}px`);
+      inner.classList.add('marquee-active');
+    }
+  } else {
+    const wrap  = el('title-wrap');
+    const inner = el('track-title-inner');
+    const span  = el('track-title');
+    inner.classList.remove('marquee-active');
+    if (span.scrollWidth > wrap.offsetWidth) {
+      inner.style.setProperty('--marquee-distance', `${span.scrollWidth + 60}px`);
+      inner.classList.add('marquee-active');
+    }
   }
 }
 
@@ -264,14 +286,8 @@ function applyAccentColor(r, g, b) {
   const root = document.documentElement;
   root.style.setProperty('--accent', `rgb(${r},${g},${b})`);
   root.style.setProperty('--accent-glow', `rgba(${r},${g},${b},0.3)`);
-  root.style.setProperty('--accent-dim', `rgba(${r},${g},${b},0.15)`);
 }
 
-function updateBgBlur(imageUrl) {
-  document.getElementById('bg-blur').style.backgroundImage = `url(${imageUrl})`;
-}
-
-// COLOR MATH
 function rgbToHsl(r, g, b) {
   r /= 255; g /= 255; b /= 255;
   const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -309,11 +325,38 @@ function hslToRgb(h, s, l) {
   return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
 }
 
-// HIDE / SHOW WIDGET
+// SOUNDWAVE (layout 2 only)
+function setPlaying(playing) {
+  isPlaying = playing;
+
+  if (LAYOUT === 2) {
+    const wave = el('soundwave');
+    if (playing) wave.classList.add('playing');
+    else wave.classList.remove('playing');
+  } else {
+    // layout 1: aggiorna badge Now Playing / Paused
+    const badge = el('status-badge');
+    const icon  = el('status-icon');
+    const text  = el('status-text');
+    if (!badge) return;
+    if (playing) {
+      badge.classList.remove('paused');
+      icon.className = 'fa-solid fa-music';
+      text.textContent = 'Now Playing';
+    } else {
+      badge.classList.add('paused');
+      icon.className = 'fa-solid fa-pause';
+      text.textContent = 'Paused';
+    }
+  }
+}
+
+// HIDE / SHOW
 function scheduleHide() {
   if (hideTimeout) return;
   hideTimeout = setTimeout(() => {
-    document.getElementById('overlay').classList.add('hidden-widget');
+    const o = LAYOUT === 2 ? el('overlay2') : el('overlay');
+    o.classList.add('hidden-widget');
     isWidgetVisible = false;
   }, HIDE_AFTER_MS);
 }
@@ -324,35 +367,27 @@ function cancelHide() {
 
 function showWidget() {
   if (!isWidgetVisible) {
-    document.getElementById('overlay').classList.remove('hidden-widget');
+    const o = LAYOUT === 2 ? el('overlay2') : el('overlay');
+    o.classList.remove('hidden-widget');
     isWidgetVisible = true;
   }
 }
 
-// UI HELPERS
-function setStatus(paused) {
-  const badge = document.getElementById('status-badge');
-  const icon = document.getElementById('status-icon');
-  const text = document.getElementById('status-text');
-  if (paused) {
-    badge.classList.add('paused');
-    icon.className = 'fa-solid fa-pause';
-    text.textContent = 'Paused';
-  } else {
-    badge.classList.remove('paused');
-    icon.className = 'fa-solid fa-music';
-    text.textContent = 'Now Playing';
-  }
-}
-
 function showLogin() {
-  document.getElementById('login-screen').classList.remove('hidden');
-  document.getElementById('overlay').classList.add('hidden');
+  el('login-screen').classList.remove('hidden');
+  el('overlay').classList.add('hidden');
+  el('overlay2').classList.add('hidden');
 }
 
 function showOverlay() {
-  document.getElementById('login-screen').classList.add('hidden');
-  document.getElementById('overlay').classList.remove('hidden');
+  el('login-screen').classList.add('hidden');
+  if (LAYOUT === 2) {
+    el('overlay').classList.add('hidden');
+    el('overlay2').classList.remove('hidden');
+  } else {
+    el('overlay').classList.remove('hidden');
+    el('overlay2').classList.add('hidden');
+  }
 }
 
 // INIT
@@ -364,22 +399,18 @@ async function init() {
       localStorage.setItem('spotify_refresh_token', params.get('refresh_token'));
       localStorage.setItem('spotify_client_id', params.get('client_id'));
       localStorage.setItem('spotify_token_expires', params.get('expires'));
-      history.replaceState(null, '', window.location.pathname);
+      history.replaceState(null, '', window.location.pathname + window.location.search);
     }
   }
 
   CLIENT_ID = localStorage.getItem('spotify_client_id') || '';
-  const input = document.getElementById('client-id-input');
+  const input = el('client-id-input');
   if (input && CLIENT_ID) input.value = CLIENT_ID;
 
   let token = localStorage.getItem('spotify_access_token');
-
-  // Se non c'è access token ma c'è refresh token, prova a rinnovare silenziosamente
   if (!token) {
     const refreshed = await tryAutoRefresh();
-    if (refreshed) {
-      token = localStorage.getItem('spotify_access_token');
-    }
+    if (refreshed) token = localStorage.getItem('spotify_access_token');
   }
 
   if (!token) { showLogin(); return; }
@@ -395,21 +426,19 @@ window.addEventListener('resize', () => checkMarquee());
 init();
 initTwitchBot();
 
-// ── TWITCH BOT ──────────────────────────────────
+// TWITCH BOT
 let twitchWs = null;
-let twitchReconnectTimeout = null;
 
 function initTwitchBot() {
   const token   = localStorage.getItem('twitch_oauth_token');
   const channel = localStorage.getItem('twitch_channel');
   const botname = localStorage.getItem('twitch_botname');
-  if (!token || !channel || !botname) return; // non configurato
+  if (!token || !channel || !botname) return;
   connectTwitch(token, channel, botname);
 }
 
 function connectTwitch(token, channel, botname) {
   if (twitchWs) { twitchWs.close(); twitchWs = null; }
-
   const ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
   twitchWs = ws;
 
@@ -417,38 +446,22 @@ function connectTwitch(token, channel, botname) {
     ws.send(`PASS ${token}`);
     ws.send(`NICK ${botname}`);
     ws.send(`JOIN #${channel}`);
-    console.log(`[Twitch] Connected to #${channel}`);
   };
 
   ws.onmessage = async (event) => {
     const raw = event.data;
-
-    // Risponde ai PING di Twitch
-    if (raw.startsWith('PING')) {
-      ws.send('PONG :tmi.twitch.tv');
-      return;
-    }
-
-    // Parsa messaggi PRIVMSG
+    if (raw.startsWith('PING')) { ws.send('PONG :tmi.twitch.tv'); return; }
     const match = raw.match(/^:(.+?)!.+? PRIVMSG #(.+?) :(.+)$/);
     if (!match) return;
-    const [, user, ch, message] = match;
+    const [, , , message] = match;
     const cmd = message.trim().toLowerCase();
-
-    if (cmd === '!upnext') {
-      const reply = await getUpNext();
-      sendTwitchMessage(ws, channel, reply);
-    } else if (cmd === '!song') {
-      const reply = await getCurrentSongText();
-      sendTwitchMessage(ws, channel, reply);
-    }
+    if (cmd === '!upnext') sendTwitchMessage(ws, channel, await getUpNext());
+    else if (cmd === '!song') sendTwitchMessage(ws, channel, await getCurrentSongText());
   };
 
   ws.onerror = (e) => console.warn('[Twitch] WS error', e);
-
   ws.onclose = () => {
-    console.warn('[Twitch] Disconnected, reconnecting in 10s...');
-    twitchReconnectTimeout = setTimeout(() => {
+    setTimeout(() => {
       const t = localStorage.getItem('twitch_oauth_token');
       const c = localStorage.getItem('twitch_channel');
       const b = localStorage.getItem('twitch_botname');
@@ -458,9 +471,7 @@ function connectTwitch(token, channel, botname) {
 }
 
 function sendTwitchMessage(ws, channel, text) {
-  if (ws && ws.readyState === WebSocket.OPEN) {
-    ws.send(`PRIVMSG #${channel} :${text}`);
-  }
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(`PRIVMSG #${channel} :${text}`);
 }
 
 async function getUpNext() {
@@ -474,12 +485,8 @@ async function getUpNext() {
     const data = await res.json();
     const next = data.queue?.[0];
     if (!next) return 'La coda Spotify e\' vuota.';
-    const title  = next.name;
-    const artist = next.artists?.map(a => a.name).join(', ') || '';
-    return `Prossima canzone: ${title} - ${artist}`;
-  } catch (e) {
-    return 'Errore nel leggere la coda.';
-  }
+    return `Prossima canzone: ${next.name} - ${next.artists?.map(a => a.name).join(', ')}`;
+  } catch { return 'Errore nel leggere la coda.'; }
 }
 
 async function getCurrentSongText() {
@@ -492,10 +499,6 @@ async function getCurrentSongText() {
     if (res.status === 204) return 'Nessuna canzone in riproduzione.';
     const data = await res.json();
     if (!data?.item) return 'Nessuna canzone in riproduzione.';
-    const title  = data.item.name;
-    const artist = data.item.artists?.map(a => a.name).join(', ') || '';
-    return `In riproduzione: ${title} - ${artist}`;
-  } catch (e) {
-    return 'Errore nel leggere la canzone.';
-  }
+    return `In riproduzione: ${data.item.name} - ${data.item.artists?.map(a => a.name).join(', ')}`;
+  } catch { return 'Errore nel leggere la canzone.'; }
 }

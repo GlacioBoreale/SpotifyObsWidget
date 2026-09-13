@@ -2,12 +2,12 @@
 
 :root {
   --accent: #1DB954;
-  --accent-glow: rgba(29,185,84,0.35);
+  --accent-glow: rgba(29,185,84,0.30);
   --accent-dim: rgba(29,185,84,0.15);
-  --surface: rgba(255,255,255,0.06);
-  --surface-border: rgba(255,255,255,0.10);
+  --surface-border: rgba(255,255,255,0.08);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255,255,255,0.55);
+  --text-secondary: rgba(255,255,255,0.50);
+  --text-dim: rgba(255,255,255,0.30);
   --radius: 32px;
 }
 
@@ -25,7 +25,7 @@ html, body {
 
 .hidden { display: none !important; }
 
-/* LOGIN SCREEN - stesse dimensioni del body, sfondo trasparente */
+/* LOGIN SCREEN */
 #login-screen {
   width: 840px;
   height: 280px;
@@ -36,33 +36,23 @@ html, body {
 }
 
 .login-card {
-  background: rgba(20,20,20,0.95);
+  background: rgba(15,15,15,0.97);
   border: 1px solid rgba(255,255,255,0.10);
   border-radius: 24px;
   padding: 32px;
   text-align: center;
-  width: 400px;
+  width: 420px;
   display: flex; flex-direction: column; align-items: center; gap: 14px;
 }
 
 .spotify-logo { width: 40px; height: 40px; color: #1DB954; }
 .login-card h1 { font-size: 18px; font-weight: 600; color: #fff; }
-.login-card p { font-size: 12px; color: rgba(255,255,255,0.5); line-height: 1.5; }
-
-#login-btn {
-  display: flex; align-items: center; gap: 8px;
-  background: #1DB954; color: #000;
-  border: none; border-radius: 50px;
-  padding: 10px 22px; font-size: 13px; font-weight: 600;
-  font-family: 'Outfit', sans-serif; cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-#login-btn:hover { transform: scale(1.04); box-shadow: 0 0 20px rgba(29,185,84,0.4); }
+.login-card p { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.5; }
 
 .login-card input {
   width: 100%;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 10px;
   padding: 10px 14px;
   color: #fff;
@@ -71,16 +61,27 @@ html, body {
   text-align: center;
 }
 .login-card input:focus { outline: none; border-color: #1DB954; }
-.login-card input::placeholder { color: rgba(255,255,255,0.3); }
+.login-card input::placeholder { color: rgba(255,255,255,0.25); }
 
-/* CONFIG PANEL */
-#config-panel { display: none; }
+#login-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: #1DB954; color: #000;
+  border: none; border-radius: 50px;
+  padding: 10px 22px; font-size: 13px; font-weight: 700;
+  font-family: 'Outfit', sans-serif; cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+#login-btn:hover { transform: scale(1.03); box-shadow: 0 0 20px rgba(29,185,84,0.4); }
 
-/* OVERLAY */
+#config-panel { display: none !important; }
+
+/* =============================================
+   LAYOUT 1 (default)
+   ============================================= */
+
 #overlay {
   position: fixed;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   width: 840px;
   height: 280px;
@@ -89,18 +90,13 @@ html, body {
   justify-content: center;
   padding: 20px;
   overflow: visible;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.6s ease;
 }
 
-#overlay.hidden-widget {
-  opacity: 0;
-  pointer-events: none;
-}
-
+#overlay.hidden-widget { opacity: 0; pointer-events: none; }
 #bg-blur { display: none; }
 #bg-color { display: none; }
 
-/* STATUS BADGE */
 #status-badge {
   position: absolute;
   top: 20px; right: 24px;
@@ -114,7 +110,6 @@ html, body {
 #status-badge i { font-size: 18px; }
 #status-badge.paused { color: rgba(255,255,255,0.35); }
 
-/* WIDGET */
 #widget {
   position: relative;
   z-index: 10;
@@ -137,15 +132,12 @@ html, body {
     box-shadow 1s ease;
 }
 
-/* ALBUM ART */
 #album-art-wrap { position: relative; flex-shrink: 0; }
 
 #album-art {
-  width: 160px;
-  height: 160px;
+  width: 160px; height: 160px;
   border-radius: 20px;
-  object-fit: cover;
-  display: block;
+  object-fit: cover; display: block;
   box-shadow: 0 8px 40px rgba(0,0,0,0.5);
 }
 
@@ -158,7 +150,6 @@ html, body {
   transition: background 1s ease;
 }
 
-/* TRACK INFO */
 #track-info {
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 8px;
@@ -172,15 +163,13 @@ html, body {
 }
 
 #track-title-inner.marquee-active {
-  animation: marquee calc(var(--marquee-distance, 400px) / 60px * 1s) linear infinite;
+  animation: marquee1 calc(var(--marquee-distance, 400px) / 60px * 1s) linear infinite;
 }
 
-@keyframes marquee {
+@keyframes marquee1 {
   0%   { transform: translateX(0); }
   100% { transform: translateX(calc(-1 * var(--marquee-distance, 400px))); }
 }
-
-#title-wrap:hover #track-title-inner { animation-play-state: paused; }
 
 #track-title {
   font-size: 28px;
@@ -195,7 +184,6 @@ html, body {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* PROGRESS BAR */
 #progress-wrap { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
 
 #progress-bar-bg {
@@ -224,5 +212,152 @@ html, body {
   color: var(--text-secondary); letter-spacing: 0.3px;
 }
 
-/* PAUSED BADGE */
 #paused-badge { display: none; }
+
+/* =============================================
+   LAYOUT 2 (?layout=2)
+   ============================================= */
+
+#overlay2 {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 840px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  transition: opacity 0.6s ease;
+}
+
+#overlay2.hidden-widget { opacity: 0; pointer-events: none; }
+
+#widget2 {
+  position: relative;
+  width: 800px;
+  height: 220px;
+  background: rgba(0,0,0,0.90);
+  border: 1px solid var(--surface-border);
+  border-radius: 20px;
+  backdrop-filter: blur(24px) saturate(1.6);
+  box-shadow:
+    0 8px 40px rgba(0,0,0,0.5),
+    0 0 0 1px rgba(255,255,255,0.03) inset,
+    0 0 32px var(--accent-glow);
+  transition: opacity 0.35s ease, transform 0.35s ease, box-shadow 1s ease;
+  display: flex;
+  align-items: center;
+  padding: 28px 28px 48px 36px;
+  gap: 24px;
+}
+
+#track-info2 {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+#title-wrap2 { overflow: hidden; position: relative; }
+
+#track-title-inner2 {
+  display: flex;
+  white-space: nowrap;
+}
+
+#track-title-inner2.marquee-active {
+  animation: marquee2 calc(var(--marquee-distance, 400px) / 60px * 1s) linear infinite;
+}
+
+@keyframes marquee2 {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(calc(-1 * var(--marquee-distance, 400px))); }
+}
+
+#track-title2 {
+  font-size: 30px; font-weight: 700; letter-spacing: -0.5px;
+  color: var(--text-primary);
+  padding-right: 60px;
+}
+
+#track-artist2 {
+  font-size: 20px; font-weight: 400;
+  color: var(--text-secondary);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+#track-album2 {
+  font-size: 17px; font-weight: 300;
+  color: var(--text-dim);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+#soundwave {
+  display: flex; align-items: center; gap: 5px;
+  height: 48px; flex-shrink: 0;
+}
+
+#soundwave span {
+  display: block; width: 5px; border-radius: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+  transition: background 1s ease, box-shadow 1s ease, height 0.3s ease;
+  height: 6px;
+}
+
+#soundwave.playing span:nth-child(1) { animation: wave 1.0s ease-in-out infinite; }
+#soundwave.playing span:nth-child(2) { animation: wave 1.3s ease-in-out infinite 0.15s; }
+#soundwave.playing span:nth-child(3) { animation: wave 0.9s ease-in-out infinite 0.05s; }
+#soundwave.playing span:nth-child(4) { animation: wave 1.1s ease-in-out infinite 0.25s; }
+#soundwave.playing span:nth-child(5) { animation: wave 1.2s ease-in-out infinite 0.1s; }
+
+#soundwave:not(.playing) span { height: 6px !important; opacity: 0.25; }
+
+@keyframes wave {
+  0%, 100% { height: 10px; }
+  50%       { height: 44px; }
+}
+
+#album-art-wrap2 { position: relative; flex-shrink: 0; }
+
+#album-art2 {
+  width: 148px; height: 148px;
+  border-radius: 14px; object-fit: cover; display: block;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6);
+}
+
+#album-glow2 {
+  position: absolute; inset: -6px;
+  border-radius: 20px;
+  background: var(--accent-glow);
+  filter: blur(16px); z-index: -1;
+  transition: background 1s ease;
+}
+
+#progress-wrap2 {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 36px;
+  display: flex; align-items: center;
+  padding: 0 20px; gap: 16px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+#progress-bar-bg2 {
+  flex: 1; height: 3px;
+  background: rgba(255,255,255,0.10);
+  border-radius: 100px; overflow: hidden;
+}
+
+#progress-bar-fill2 {
+  height: 100%; width: 0%;
+  background: var(--accent);
+  border-radius: 100px;
+  transition: width 0.95s linear, background 1s ease;
+}
+
+#time-remaining {
+  font-size: 18px; font-weight: 500;
+  color: var(--text-dim); letter-spacing: 0.5px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
