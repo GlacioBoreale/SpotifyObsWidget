@@ -31,21 +31,15 @@
 <div id="overlay" class="hidden">
   <div id="bg-blur"></div>
   <div id="bg-color"></div>
-
   <div id="widget">
-    <!-- Status badge -->
     <div id="status-badge">
       <i id="status-icon" class="fa-solid fa-music"></i>
       <span id="status-text">Now Playing</span>
     </div>
-
-    <!-- Album Art -->
     <div id="album-art-wrap">
       <img id="album-art" src="" alt="Album Art">
       <div id="album-glow"></div>
     </div>
-
-    <!-- Track Info -->
     <div id="track-info">
       <div id="title-wrap">
         <div id="track-title-inner">
@@ -53,8 +47,6 @@
         </div>
       </div>
       <div id="track-artist">—</div>
-
-      <!-- Progress -->
       <div id="progress-wrap">
         <div id="progress-bar-bg">
           <div id="progress-bar-fill">
@@ -74,31 +66,33 @@
 <div id="overlay2" class="hidden">
   <div id="widget2">
 
-    <div id="track-info2">
-      <div id="title-wrap2">
-        <div id="track-title-inner2">
-          <span id="track-title2">—</span>
+    <!-- zona sinistra: testo inclinato -->
+    <div id="l2-text">
+      <div id="l2-title-wrap">
+        <div id="l2-title-inner">
+          <span id="l2-title">—</span>
         </div>
       </div>
-      <div id="track-artist2">—</div>
-      <div id="track-album2">—</div>
+      <div id="l2-artist">—</div>
+      <div id="l2-album">—</div>
     </div>
 
-    <div id="soundwave">
-      <span></span><span></span><span></span><span></span><span></span>
-    </div>
-
-    <div id="album-art-wrap2">
-      <img id="album-art2" src="" alt="">
-      <div id="album-glow2"></div>
-    </div>
-
-    <div id="progress-wrap2">
-      <div id="progress-bar-bg2">
-        <div id="progress-bar-fill2"></div>
+    <!-- zona centrale: parallelogramma rosso con spectrum -->
+    <div id="l2-shape">
+      <canvas id="l2-spectrum"></canvas>
+      <!-- progress bar che si svuota da destra a sinistra -->
+      <div id="l2-progress-bg">
+        <div id="l2-progress-fill"></div>
       </div>
-      <div id="time-remaining">-0:00</div>
     </div>
+
+    <!-- zona destra: album art con fade -->
+    <div id="l2-art-wrap">
+      <img id="l2-art" src="" alt="">
+    </div>
+
+    <!-- timer in basso a destra -->
+    <div id="l2-timer">0:00</div>
 
   </div>
 </div>
